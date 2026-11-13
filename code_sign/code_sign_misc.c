@@ -4,6 +4,7 @@
  */
 
 #include <linux/module.h>
+#include <linux/fs.h>
 #include <linux/cdev.h>
 #include <linux/miscdevice.h>
 #include <linux/hck/lite_hck_code_sign.h>

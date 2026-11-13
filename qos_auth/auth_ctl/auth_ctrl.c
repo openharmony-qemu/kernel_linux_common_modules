@@ -6,6 +6,9 @@
  *
  */
 
+#ifdef CONFIG_COMPAT
+#include <linux/compat.h>
+#endif
 #include <linux/cred.h>
 #include <linux/mutex.h>
 #include <linux/errno.h>
@@ -390,6 +393,16 @@ static long do_auth_manipulate(struct auth_ctrl_data *data)
 	return ret;
 }
 
+static void __user *auth_abi_user_ptr(int abi, void __user *uarg)
+{
+	if (abi == AUTH_IOCTL_ABI_ARM32) {
+#ifdef CONFIG_COMPAT
+		return compat_ptr((compat_uptr_t)(unsigned long)uarg);
+#endif
+	}
+	return uarg;
+}
+
 static long ctrl_auth_basic_operation(int abi, void __user *uarg)
 {
 	struct auth_ctrl_data auth_data;
@@ -398,10 +411,11 @@ static long ctrl_auth_basic_operation(int abi, void __user *uarg)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpointer-to-int-cast"
 
+	uarg = auth_abi_user_ptr(abi, uarg);
+
 	switch (abi) {
 	case AUTH_IOCTL_ABI_ARM32:
-		ret = copy_from_user(&auth_data,
-				(void __user *)compat_ptr((compat_uptr_t)uarg),
+		ret = copy_from_user(&auth_data, uarg,
 				sizeof(struct auth_ctrl_data));
 		break;
 	case AUTH_IOCTL_ABI_AARCH64:
@@ -430,8 +444,7 @@ static long ctrl_auth_basic_operation(int abi, void __user *uarg)
 
 	switch (abi) {
 	case AUTH_IOCTL_ABI_ARM32:
-		ret = copy_to_user((void __user *)compat_ptr((compat_uptr_t)uarg),
-				&auth_data,
+		ret = copy_to_user(uarg, &auth_data,
 				sizeof(struct auth_ctrl_data));
 		break;
 	case AUTH_IOCTL_ABI_AARCH64:

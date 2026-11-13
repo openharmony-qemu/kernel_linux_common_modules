@@ -10,6 +10,7 @@ config SECURITY_XPM
 	def_bool $(success, $(srctree)/scripts/ohos-check-dir.sh $(srctree)/security/xpm)
 	depends on 64BIT
 	depends on SECURITY_CODE_SIGN
+	select ARCH_USES_HIGH_VMA_FLAGS
 	help
 	  The Executable Permission Manager(XPM) control process execution
 	  by inserting control poliy into the security hook list, such as execv,

@@ -5,6 +5,9 @@
  * Copyright (c) 2022 Huawei Device Co., Ltd.
  *
  */
+#ifdef CONFIG_COMPAT
+#include <linux/compat.h>
+#endif
 #include <linux/sched.h>
 #include <linux/list.h>
 #include <linux/mutex.h>
@@ -486,6 +489,16 @@ static long do_qos_manipulate(struct qos_ctrl_data *data)
 	return ret;
 }
 
+static void __user *qos_abi_user_ptr(int abi, void __user *uarg)
+{
+	if (abi == QOS_IOCTL_ABI_ARM32) {
+#ifdef CONFIG_COMPAT
+		return compat_ptr((compat_uptr_t)(unsigned long)uarg);
+#endif
+	}
+	return uarg;
+}
+
 static long ctrl_qos_operation(int abi, void __user *uarg)
 {
 	struct qos_ctrl_data qos_data;
@@ -494,10 +507,11 @@ static long ctrl_qos_operation(int abi, void __user *uarg)
 #pragma GCC diagnostic push
 #pragma GCC diagonstic ignored "-Wpointer-to-int-cast"
 
+	uarg = qos_abi_user_ptr(abi, uarg);
+
 	switch (abi) {
 	case QOS_IOCTL_ABI_ARM32:
-		ret = copy_from_user(&qos_data,
-				(void __user *)compat_ptr((compat_uptr_t)uarg),
+		ret = copy_from_user(&qos_data, uarg,
 				sizeof(struct qos_ctrl_data));
 		break;
 	case QOS_IOCTL_ABI_AARCH64:
@@ -526,8 +540,7 @@ static long ctrl_qos_operation(int abi, void __user *uarg)
 
 	switch (abi) {
 	case QOS_IOCTL_ABI_ARM32:
-		ret = copy_to_user((void __user *)compat_ptr((compat_uptr_t)uarg),
-				&qos_data, sizeof(struct qos_ctrl_data));
+		ret = copy_to_user(uarg, &qos_data, sizeof(struct qos_ctrl_data));
 		break;
 	case QOS_IOCTL_ABI_AARCH64:
 		ret = copy_to_user(uarg, &qos_data, sizeof(struct qos_ctrl_data));
@@ -682,10 +695,11 @@ static long ctrl_qos_policy(int abi, void __user *uarg)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpointer-to-int-cast"
 
+	uarg = qos_abi_user_ptr(abi, uarg);
+
 	switch (abi) {
 	case QOS_IOCTL_ABI_ARM32:
-		ret = copy_from_user(&policy_datas,
-				(void __user *)compat_ptr((compat_uptr_t)uarg),
+		ret = copy_from_user(&policy_datas, uarg,
 				sizeof(struct qos_policy_datas));
 		break;
 	case QOS_IOCTL_ABI_AARCH64:
