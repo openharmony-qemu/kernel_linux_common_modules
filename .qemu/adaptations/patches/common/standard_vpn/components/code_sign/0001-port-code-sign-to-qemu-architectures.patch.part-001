@@ -1,0 +1,12 @@
+diff --git a/kernel/linux/common_modules/code_sign/code_sign_misc.c b/kernel/linux/common_modules/code_sign/code_sign_misc.c
+index ffa02a0..dfad8f3 100644
+--- a/kernel/linux/common_modules/code_sign/code_sign_misc.c
++++ b/kernel/linux/common_modules/code_sign/code_sign_misc.c
+@@ -4,6 +4,7 @@
+  */
+ 
+ #include <linux/module.h>
++#include <linux/fs.h>
+ #include <linux/cdev.h>
+ #include <linux/miscdevice.h>
+ #include <linux/hck/lite_hck_code_sign.h>
